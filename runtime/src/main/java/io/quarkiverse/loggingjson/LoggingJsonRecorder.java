@@ -6,6 +6,10 @@ import java.util.Optional;
 import java.util.logging.Formatter;
 import java.util.stream.Collectors;
 
+import org.eclipse.microprofile.config.ConfigProvider;
+import org.jboss.logmanager.ExtFormatter;
+import org.jboss.logmanager.ExtLogRecord;
+import org.jboss.logmanager.formatters.ColorPatternFormatter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,9 +41,6 @@ public class LoggingJsonRecorder {
     private static final Logger log = LoggerFactory.getLogger(LoggingJsonRecorder.class);
 
     public RuntimeValue<Optional<Formatter>> initializeJsonLogging(Config config, boolean useJackson) {
-        if (!config.enable) {
-            return new RuntimeValue<>(Optional.empty());
-        }
         List<JsonProvider> providers = new ArrayList<>();
         providers.add(new TimestampJsonProvider(config.fields.timestamp));
         providers.add(new SequenceJsonProvider(config.fields.sequence));
@@ -84,6 +85,43 @@ public class LoggingJsonRecorder {
             jsonFactory = new JsonbJsonFactory();
         }
 
+        if (!config.enable) {
+            // a restricted set of providers that will only show what we actually want
+            List<JsonProvider> passthroughProviders = new ArrayList<>();
+            passthroughProviders.add(new ArgumentsJsonProvider(config.fields.arguments));
+            passthroughProviders.add(new MDCJsonProvider(config.fields.mdc));
+            final JsonFormatter jsonFormatter = new JsonFormatter(passthroughProviders, jsonFactory, config);
+
+            log.debug("Wrapped json-logger in a pass-through implementation");
+            return new RuntimeValue<>(Optional.of(new PassthroughFormatter(jsonFormatter)));
+        }
+
         return new RuntimeValue<>(Optional.of(new JsonFormatter(providers, jsonFactory, config)));
+    }
+
+    private class PassthroughFormatter extends ExtFormatter {
+        private final JsonFormatter jsonFormatter;
+        private final ColorPatternFormatter colorPatternFormatter;
+
+        public PassthroughFormatter(JsonFormatter jsonFormatter) {
+            this.jsonFormatter = jsonFormatter;
+
+            final org.eclipse.microprofile.config.Config config = ConfigProvider.getConfig();
+            this.colorPatternFormatter = new ColorPatternFormatter(
+                    config.getValue("quarkus.log.console.darken", Integer.class),
+                    config.getValue("quarkus.log.console.format", String.class));
+        }
+
+        @Override
+        public String format(ExtLogRecord record) {
+            String res = colorPatternFormatter.format(record);
+            String tmp = jsonFormatter.format(record);
+
+            if (3 < tmp.length()) {
+                res += "JSON data: " + tmp;
+            }
+
+            return res;
+        }
     }
 }
