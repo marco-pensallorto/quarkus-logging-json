@@ -116,8 +116,7 @@ public class LoggingJsonRecorder {
         public String format(ExtLogRecord record) {
             String res = colorPatternFormatter.format(record);
             String tmp = jsonFormatter.format(record);
-
-            if (3 < tmp.length()) {
+            if (4 < tmp.length()) {
                 res += "JSON data: " + tmp;
             }
 
