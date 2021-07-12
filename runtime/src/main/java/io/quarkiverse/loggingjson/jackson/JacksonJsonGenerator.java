@@ -14,6 +14,11 @@ public class JacksonJsonGenerator implements JsonGenerator {
     }
 
     @Override
+    public void usePrettyPrinter() {
+        this.generator.useDefaultPrettyPrinter();
+    }
+
+    @Override
     public void writeStartObject() throws IOException {
         this.generator.writeStartObject();
     }

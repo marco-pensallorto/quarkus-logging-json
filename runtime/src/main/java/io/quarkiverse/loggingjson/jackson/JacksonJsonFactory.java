@@ -3,8 +3,6 @@ package io.quarkiverse.loggingjson.jackson;
 import java.io.IOException;
 import java.util.ServiceConfigurationError;
 
-import org.eclipse.microprofile.config.ConfigProvider;
-
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
 
@@ -56,12 +54,6 @@ public class JacksonJsonFactory implements JsonFactory {
 
     @Override
     public JsonGenerator createGenerator(StringBuilderWriter writer) throws IOException {
-        final org.eclipse.microprofile.config.Config config = ConfigProvider.getConfig();
-        final com.fasterxml.jackson.core.JsonGenerator generator = jsonFactory.createGenerator(writer);
-        if (config.getValue("quarkus.log.console.json.pretty-print", Boolean.class)) {
-            generator.useDefaultPrettyPrinter();
-        }
-
-        return new JacksonJsonGenerator(generator);
+        return new JacksonJsonGenerator(jsonFactory.createGenerator(writer));
     }
 }

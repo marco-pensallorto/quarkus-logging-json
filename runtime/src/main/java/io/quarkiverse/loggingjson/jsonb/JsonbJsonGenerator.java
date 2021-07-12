@@ -22,6 +22,11 @@ public class JsonbJsonGenerator implements JsonGenerator {
     }
 
     @Override
+    public void usePrettyPrinter() {
+        // unsupported
+    }
+
+    @Override
     public void writeStartObject() {
         this.generator.writeStartObject();
     }

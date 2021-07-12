@@ -27,7 +27,7 @@ public class Config {
     /**
      * Enable "pretty printing" of the JSON record. Note that some JSON parsers will fail to read pretty printed output.
      */
-    @ConfigItem
+    @ConfigItem(defaultValue = "false")
     boolean prettyPrint;
     /**
      * The special end-of-record delimiter to be used. By default, newline delimiter is used.

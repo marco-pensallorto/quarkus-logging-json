@@ -7,6 +7,8 @@ import java.math.BigInteger;
 
 public interface JsonGenerator extends Closeable {
 
+    void usePrettyPrinter();
+
     void writeStartObject() throws IOException;
 
     void writeEndObject() throws IOException;
